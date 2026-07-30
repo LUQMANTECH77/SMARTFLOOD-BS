@@ -1,0 +1,2819 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+name="viewport"
+content="width=device-width, initial-scale=1.0">
+
+<title>
+SMART FLOOD BS | Dashboard Monitoring
+</title>
+
+<!-- FONT -->
+
+<link
+rel="preconnect"
+href="https://fonts.googleapis.com">
+
+<link
+rel="preconnect"
+href="https://fonts.gstatic.com"
+crossorigin>
+
+<link
+href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+rel="stylesheet">
+
+
+<!-- ICON -->
+
+<link
+rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+
+
+<!-- MQTT -->
+
+<script
+src="https://unpkg.com/mqtt/dist/mqtt.min.js">
+</script>
+
+
+<!-- CHART -->
+
+<script
+src="https://cdn.jsdelivr.net/npm/chart.js">
+</script>
+
+
+<style>
+
+/* =====================================================
+SMART FLOOD BS
+LIGHT MODERN DASHBOARD
+===================================================== */
+
+:root {
+
+--background:
+#f3f8fc;
+
+--background-2:
+#eaf4fb;
+
+--white:
+#ffffff;
+
+--text:
+#18324a;
+
+--text-soft:
+#71869a;
+
+--border:
+#dce8f1;
+
+--blue:
+#1687e8;
+
+--blue-light:
+#e8f5ff;
+
+--cyan:
+#14b8c4;
+
+--cyan-light:
+#e5fbfc;
+
+--green:
+#16a66c;
+
+--green-light:
+#e6f8ef;
+
+--yellow:
+#e8a600;
+
+--yellow-light:
+#fff7dc;
+
+--orange:
+#f17b22;
+
+--orange-light:
+#fff0e5;
+
+--red:
+#e94b5f;
+
+--red-light:
+#ffebee;
+
+--shadow:
+0 12px 35px
+rgba(40,78,105,.09);
+
+}
+
+
+/* =====================================================
+RESET
+===================================================== */
+
+* {
+
+margin:
+0;
+
+padding:
+0;
+
+box-sizing:
+border-box;
+
+}
+
+
+body {
+
+font-family:
+"Plus Jakarta Sans",
+sans-serif;
+
+color:
+var(--text);
+
+background:
+
+radial-gradient(
+
+circle at top right,
+
+rgba(22,135,232,.10),
+
+transparent 28%
+
+),
+
+var(--background);
+
+min-height:
+100vh;
+
+overflow-x:
+hidden;
+
+}
+
+
+/* =====================================================
+HEADER
+===================================================== */
+
+header {
+
+width:
+100%;
+
+min-height:
+78px;
+
+padding:
+15px
+clamp(
+18px,
+5vw,
+70px
+);
+
+display:
+flex;
+
+align-items:
+center;
+
+justify-content:
+space-between;
+
+gap:
+18px;
+
+background:
+rgba(
+255,
+255,
+255,
+.92
+);
+
+border-bottom:
+1px solid
+var(--border);
+
+backdrop-filter:
+blur(15px);
+
+position:
+sticky;
+
+top:
+0;
+
+z-index:
+1000;
+
+}
+
+
+.brand {
+
+display:
+flex;
+
+align-items:
+center;
+
+gap:
+13px;
+
+}
+
+
+.brand-icon {
+
+width:
+50px;
+
+height:
+50px;
+
+flex-shrink:
+0;
+
+display:
+grid;
+
+place-items:
+center;
+
+border-radius:
+16px;
+
+font-size:
+21px;
+
+color:
+white;
+
+background:
+
+linear-gradient(
+
+135deg,
+
+var(--blue),
+
+var(--cyan)
+
+);
+
+box-shadow:
+
+0 8px 22px
+
+rgba(
+22,
+135,
+232,
+.25
+);
+
+}
+
+
+.brand h1 {
+
+font-size:
+
+clamp(
+17px,
+2vw,
+22px
+);
+
+font-weight:
+800;
+
+letter-spacing:
+-.5px;
+
+}
+
+
+.brand p {
+
+margin-top:
+3px;
+
+font-size:
+10px;
+
+font-weight:
+700;
+
+letter-spacing:
+1px;
+
+color:
+var(--text-soft);
+
+}
+
+
+/* MQTT STATUS */
+
+.mqtt-status {
+
+display:
+flex;
+
+align-items:
+center;
+
+justify-content:
+center;
+
+gap:
+9px;
+
+padding:
+10px
+15px;
+
+border:
+1px solid
+var(--border);
+
+border-radius:
+50px;
+
+background:
+var(--white);
+
+white-space:
+nowrap;
+
+box-shadow:
+
+0 5px 18px
+
+rgba(
+50,
+80,
+100,
+.05
+);
+
+}
+
+
+.status-dot {
+
+width:
+9px;
+
+height:
+9px;
+
+border-radius:
+50%;
+
+background:
+var(--red);
+
+}
+
+
+.status-dot.online {
+
+background:
+var(--green);
+
+box-shadow:
+
+0 0 0 5px
+
+rgba(
+22,
+166,
+108,
+.13
+);
+
+animation:
+
+pulse
+1.7s
+infinite;
+
+}
+
+
+@keyframes pulse {
+
+50% {
+
+transform:
+scale(
+1.25
+);
+
+}
+
+}
+
+
+#connectionText {
+
+font-size:
+11px;
+
+font-weight:
+800;
+
+color:
+var(--text);
+
+}
+
+
+/* =====================================================
+MAIN
+===================================================== */
+
+.dashboard {
+
+width:
+
+min(
+1500px,
+94%
+);
+
+margin:
+
+28px
+auto;
+
+}
+
+
+/* =====================================================
+HERO
+===================================================== */
+
+.hero {
+
+padding:
+
+clamp(
+23px,
+4vw,
+42px
+);
+
+display:
+flex;
+
+align-items:
+center;
+
+justify-content:
+space-between;
+
+gap:
+25px;
+
+border:
+1px solid
+#d7eaf7;
+
+border-radius:
+28px;
+
+background:
+
+linear-gradient(
+
+125deg,
+
+#ffffff,
+
+#edf8ff
+
+);
+
+box-shadow:
+var(--shadow);
+
+position:
+relative;
+
+overflow:
+hidden;
+
+}
+
+
+.hero::after {
+
+content:
+"";
+
+position:
+absolute;
+
+width:
+300px;
+
+height:
+300px;
+
+right:
+-130px;
+
+top:
+-180px;
+
+border-radius:
+50%;
+
+background:
+
+rgba(
+20,
+184,
+196,
+.10
+);
+
+}
+
+
+/* HERO LEFT */
+
+.hero-left {
+
+z-index:
+2;
+
+}
+
+
+.hero-label {
+
+display:
+flex;
+
+align-items:
+center;
+
+gap:
+8px;
+
+font-size:
+10px;
+
+font-weight:
+800;
+
+letter-spacing:
+1.5px;
+
+color:
+var(--blue);
+
+}
+
+
+.hero-status {
+
+margin:
+10px 0;
+
+font-size:
+
+clamp(
+35px,
+6vw,
+65px
+);
+
+font-weight:
+800;
+
+line-height:
+1;
+
+color:
+var(--green);
+
+}
+
+
+.hero-description {
+
+font-size:
+12px;
+
+color:
+var(--text-soft);
+
+}
+
+
+/* HERO INFO */
+
+.hero-right {
+
+min-width:
+310px;
+
+display:
+grid;
+
+grid-template-columns:
+
+repeat(
+2,
+1fr
+);
+
+gap:
+12px;
+
+z-index:
+2;
+
+}
+
+
+.hero-info {
+
+padding:
+17px;
+
+border:
+1px solid
+var(--border);
+
+border-radius:
+17px;
+
+background:
+
+rgba(
+255,
+255,
+255,
+.75
+);
+
+}
+
+
+.hero-info small {
+
+display:
+block;
+
+font-size:
+9px;
+
+font-weight:
+700;
+
+color:
+var(--text-soft);
+
+}
+
+
+.hero-info strong {
+
+display:
+block;
+
+margin-top:
+8px;
+
+font-size:
+13px;
+
+word-break:
+break-word;
+
+}
+
+
+/* =====================================================
+SECTION
+===================================================== */
+
+.section-title {
+
+display:
+flex;
+
+align-items:
+center;
+
+justify-content:
+space-between;
+
+margin:
+
+28px
+0
+15px;
+
+}
+
+
+.section-title h2 {
+
+font-size:
+
+clamp(
+16px,
+2vw,
+20px
+);
+
+}
+
+
+.live {
+
+font-size:
+10px;
+
+font-weight:
+800;
+
+color:
+var(--green);
+
+}
+
+
+/* =====================================================
+SENSOR GRID
+FLEXIBLE AUTOMATIC
+===================================================== */
+
+.sensor-grid {
+
+display:
+grid;
+
+grid-template-columns:
+
+repeat(
+
+auto-fit,
+
+minmax(
+220px,
+1fr
+)
+
+);
+
+gap:
+
+clamp(
+12px,
+2vw,
+18px
+);
+
+}
+
+
+/* =====================================================
+CARD
+===================================================== */
+
+.sensor-card {
+
+min-height:
+205px;
+
+padding:
+
+clamp(
+18px,
+2vw,
+24px
+);
+
+border:
+1px solid
+var(--border);
+
+border-radius:
+22px;
+
+background:
+var(--white);
+
+box-shadow:
+var(--shadow);
+
+transition:
+
+transform
+.25s,
+
+box-shadow
+.25s;
+
+position:
+relative;
+
+overflow:
+hidden;
+
+}
+
+
+.sensor-card:hover {
+
+transform:
+
+translateY(
+-5px
+);
+
+box-shadow:
+
+0 18px 42px
+
+rgba(
+40,
+80,
+105,
+.15
+);
+
+}
+
+
+.sensor-card::before {
+
+content:
+"";
+
+position:
+absolute;
+
+top:
+0;
+
+left:
+0;
+
+width:
+100%;
+
+height:
+4px;
+
+background:
+
+linear-gradient(
+
+90deg,
+
+var(--blue),
+
+var(--cyan)
+
+);
+
+}
+
+
+.sensor-top {
+
+display:
+flex;
+
+align-items:
+center;
+
+justify-content:
+space-between;
+
+gap:
+10px;
+
+}
+
+
+.sensor-icon {
+
+width:
+48px;
+
+height:
+48px;
+
+flex-shrink:
+0;
+
+display:
+grid;
+
+place-items:
+center;
+
+border-radius:
+15px;
+
+font-size:
+19px;
+
+color:
+var(--blue);
+
+background:
+var(--blue-light);
+
+}
+
+
+.sensor-name {
+
+font-size:
+9px;
+
+font-weight:
+800;
+
+letter-spacing:
+1px;
+
+text-align:
+right;
+
+color:
+var(--text-soft);
+
+}
+
+
+.sensor-value {
+
+margin-top:
+29px;
+
+font-size:
+
+clamp(
+31px,
+4vw,
+42px
+);
+
+font-weight:
+800;
+
+letter-spacing:
+-1px;
+
+word-break:
+break-word;
+
+}
+
+
+.sensor-unit {
+
+font-size:
+13px;
+
+font-weight:
+600;
+
+color:
+var(--text-soft);
+
+}
+
+
+.sensor-footer {
+
+margin-top:
+13px;
+
+font-size:
+9px;
+
+font-weight:
+700;
+
+letter-spacing:
+.7px;
+
+color:
+#91a4b4;
+
+}
+
+
+/* =====================================================
+DETAIL GRID
+===================================================== */
+
+.detail-grid {
+
+display:
+grid;
+
+grid-template-columns:
+
+repeat(
+
+auto-fit,
+
+minmax(
+280px,
+1fr
+)
+
+);
+
+gap:
+16px;
+
+margin-top:
+17px;
+
+}
+
+
+.detail-card {
+
+padding:
+22px;
+
+border:
+1px solid
+var(--border);
+
+border-radius:
+21px;
+
+background:
+var(--white);
+
+box-shadow:
+var(--shadow);
+
+}
+
+
+.detail-card small {
+
+font-size:
+9px;
+
+font-weight:
+800;
+
+letter-spacing:
+1px;
+
+color:
+var(--text-soft);
+
+}
+
+
+.detail-value {
+
+margin-top:
+10px;
+
+font-size:
+
+clamp(
+18px,
+3vw,
+24px
+);
+
+font-weight:
+800;
+
+word-break:
+break-word;
+
+}
+
+
+/* =====================================================
+CHART GRID
+===================================================== */
+
+.chart-grid {
+
+display:
+grid;
+
+grid-template-columns:
+
+repeat(
+
+auto-fit,
+
+minmax(
+350px,
+1fr
+)
+
+);
+
+gap:
+17px;
+
+margin-top:
+17px;
+
+}
+
+
+.chart-card {
+
+height:
+390px;
+
+padding:
+
+clamp(
+17px,
+2vw,
+24px
+);
+
+border:
+1px solid
+var(--border);
+
+border-radius:
+22px;
+
+background:
+var(--white);
+
+box-shadow:
+var(--shadow);
+
+}
+
+
+.chart-header {
+
+display:
+flex;
+
+align-items:
+center;
+
+justify-content:
+space-between;
+
+margin-bottom:
+20px;
+
+}
+
+
+.chart-header h3 {
+
+font-size:
+14px;
+
+}
+
+
+.chart-header span {
+
+font-size:
+9px;
+
+font-weight:
+800;
+
+color:
+var(--blue);
+
+}
+
+
+.chart-area {
+
+height:
+290px;
+
+}
+
+
+/* =====================================================
+FOOTER
+===================================================== */
+
+footer {
+
+padding:
+28px;
+
+text-align:
+center;
+
+font-size:
+10px;
+
+font-weight:
+600;
+
+color:
+var(--text-soft);
+
+}
+
+
+/* =====================================================
+TABLET
+===================================================== */
+
+@media(
+max-width:
+850px
+) {
+
+.hero {
+
+flex-direction:
+column;
+
+align-items:
+flex-start;
+
+}
+
+.hero-right {
+
+width:
+100%;
+
+min-width:
+0;
+
+}
+
+}
+
+
+/* =====================================================
+MOBILE
+===================================================== */
+
+@media(
+max-width:
+600px
+) {
+
+header {
+
+padding:
+13px
+16px;
+
+flex-direction:
+column;
+
+align-items:
+stretch;
+
+}
+
+.brand {
+
+justify-content:
+center;
+
+}
+
+.brand p {
+
+text-align:
+center;
+
+}
+
+.mqtt-status {
+
+width:
+100%;
+
+}
+
+.dashboard {
+
+width:
+92%;
+
+margin:
+18px
+auto;
+
+}
+
+.hero {
+
+border-radius:
+21px;
+
+}
+
+.hero-right {
+
+grid-template-columns:
+1fr;
+
+}
+
+.sensor-grid {
+
+grid-template-columns:
+1fr;
+
+}
+
+.chart-grid {
+
+grid-template-columns:
+1fr;
+
+}
+
+.chart-card {
+
+height:
+350px;
+
+}
+
+.chart-area {
+
+height:
+250px;
+
+}
+
+}
+
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<!-- =====================================================
+HEADER
+===================================================== -->
+
+<header>
+
+<div class="brand">
+
+<div class="brand-icon">
+
+<i class="fa-solid fa-water"></i>
+
+</div>
+
+<div>
+
+<h1>
+SMART FLOOD BS
+</h1>
+
+<p>
+SMPM 9 BOJONEGORO
+</p>
+
+</div>
+
+</div>
+
+
+<div class="mqtt-status">
+
+<div
+
+id="connectionDot"
+
+class="status-dot">
+
+</div>
+
+<span
+
+id="connectionText">
+
+MQTT OFFLINE
+
+</span>
+
+</div>
+
+</header>
+
+
+<!-- =====================================================
+DASHBOARD
+===================================================== -->
+
+<main class="dashboard">
+
+
+<!-- HERO -->
+
+<section class="hero">
+
+<div class="hero-left">
+
+<div class="hero-label">
+
+<i class="fa-solid fa-shield-halved"></i>
+
+STATUS MONITORING
+
+</div>
+
+<h2
+
+id="statusValue"
+
+class="hero-status">
+
+MENUNGGU DATA
+
+</h2>
+
+<p class="hero-description">
+
+Pemantauan kondisi banjir
+secara real-time
+
+</p>
+
+</div>
+
+
+<div class="hero-right">
+
+<div class="hero-info">
+
+<small>
+
+MODE SISTEM
+
+</small>
+
+<strong
+
+id="modeValue">
+
+-
+
+</strong>
+
+</div>
+
+
+<div class="hero-info">
+
+<small>
+
+UPDATE TERAKHIR
+
+</small>
+
+<strong
+
+id="timestampValue">
+
+-
+
+</strong>
+
+</div>
+
+</div>
+
+</section>
+
+
+<!-- TITLE -->
+
+<div class="section-title">
+
+<h2>
+
+Monitoring Sensor
+
+</h2>
+
+<span class="live">
+
+● LIVE DATA
+
+</span>
+
+</div>
+
+
+<!-- SENSOR CARD -->
+
+<section class="sensor-grid">
+
+
+<!-- WATER -->
+
+<div class="sensor-card">
+
+<div class="sensor-top">
+
+<div class="sensor-icon">
+
+<i class="fa-solid fa-water"></i>
+
+</div>
+
+<span class="sensor-name">
+
+KETINGGIAN AIR
+
+</span>
+
+</div>
+
+<div
+
+id="waterLevel"
+
+class="sensor-value">
+
+0.00
+
+<span class="sensor-unit">
+
+cm
+
+</span>
+
+</div>
+
+<p class="sensor-footer">
+
+SENSOR JSN-SR04T
+
+</p>
+
+</div>
+
+
+<!-- RAIN -->
+
+<div class="sensor-card">
+
+<div class="sensor-top">
+
+<div class="sensor-icon">
+
+<i class="fa-solid fa-cloud-rain"></i>
+
+</div>
+
+<span class="sensor-name">
+
+CURAH HUJAN
+
+</span>
+
+</div>
+
+<div
+
+id="rainfall"
+
+class="sensor-value">
+
+0.00
+
+<span
+
+id="rainUnit"
+
+class="sensor-unit">
+
+mm
+
+</span>
+
+</div>
+
+<p class="sensor-footer">
+
+TIPPING BUCKET
+
+</p>
+
+</div>
+
+
+<!-- IRB -->
+
+<div class="sensor-card">
+
+<div class="sensor-top">
+
+<div class="sensor-icon">
+
+<i class="fa-solid fa-cloud-showers-heavy"></i>
+
+</div>
+
+<span class="sensor-name">
+
+IRB
+
+</span>
+
+</div>
+
+<div
+
+id="irbValue"
+
+class="sensor-value">
+
+-
+
+</div>
+
+<p class="sensor-footer">
+
+INDEKS RESIKO BAHAYA
+
+</p>
+
+</div>
+
+
+<!-- MODE -->
+
+<div class="sensor-card">
+
+<div class="sensor-top">
+
+<div class="sensor-icon">
+
+<i class="fa-solid fa-microchip"></i>
+
+</div>
+
+<span class="sensor-name">
+
+MODE SISTEM
+
+</span>
+
+</div>
+
+<div
+
+id="modeCard"
+
+class="sensor-value">
+
+-
+
+</div>
+
+<p class="sensor-footer">
+
+SMARTFLOOD OPERATION
+
+</p>
+
+</div>
+
+</section>
+
+
+<!-- DETAIL -->
+
+<section class="detail-grid">
+
+<div class="detail-card">
+
+<small>
+
+STATUS BANJIR
+
+</small>
+
+<div
+
+id="statusBadge"
+
+class="detail-value">
+
+MENUNGGU DATA
+
+</div>
+
+</div>
+
+
+<div class="detail-card">
+
+<small>
+
+WAKTU DATA MQTT
+
+</small>
+
+<div
+
+id="timeCard"
+
+class="detail-value">
+
+-
+
+</div>
+
+</div>
+
+</section>
+
+
+<!-- CHART -->
+
+<section class="chart-grid">
+
+
+<div class="chart-card">
+
+<div class="chart-header">
+
+<h3>
+
+Ketinggian Air
+
+</h3>
+
+<span>
+
+REAL-TIME
+
+</span>
+
+</div>
+
+<div class="chart-area">
+
+<canvas
+
+id="waterChart">
+
+</canvas>
+
+</div>
+
+</div>
+
+
+<div class="chart-card">
+
+<div class="chart-header">
+
+<h3>
+
+Curah Hujan
+
+</h3>
+
+<span>
+
+REAL-TIME
+
+</span>
+
+</div>
+
+<div class="chart-area">
+
+<canvas
+
+id="rainChart">
+
+</canvas>
+
+</div>
+
+</div>
+
+</section>
+
+
+</main>
+
+
+<footer>
+
+SMART FLOOD BS
+
+&nbsp;•&nbsp;
+
+SMP MUHAMMADIYAH 9 BOJONEGORO
+
+&nbsp;•&nbsp;
+
+2026
+
+</footer>
+
+
+<!-- =====================================================
+JAVASCRIPT
+===================================================== -->
+
+<script>
+
+
+/* =====================================================
+MQTT CONFIGURATION
+===================================================== */
+
+const MQTT_CONFIG = {
+
+host:
+"broker.avisha.id",
+
+port:
+8084,
+
+protocol:
+"ws",
+
+username:
+"LTECH77_LABS",
+
+password:
+"sEMOGAlANCAR77",
+
+topics: {
+
+water:
+"LTECH77_LABS/master/water_level",
+
+rain:
+"LTECH77_LABS/master/rainfall",
+
+unit:
+"LTECH77_LABS/master/rainfall_unit",
+
+irb:
+"LTECH77_LABS/master/irb",
+
+status:
+"LTECH77_LABS/master/status",
+
+time:
+"LTECH77_LABS/master/timestamp",
+
+mode:
+"LTECH77_LABS/master/mode"
+
+}
+
+};
+
+
+/* MQTT URL */
+
+const MQTT_URL =
+
+`${MQTT_CONFIG.protocol}://` +
+
+`${MQTT_CONFIG.host}:` +
+
+`${MQTT_CONFIG.port}/mqtt`;
+
+
+/* MQTT CONNECT */
+
+const client =
+
+mqtt.connect(
+
+MQTT_URL,
+
+{
+
+username:
+MQTT_CONFIG.username,
+
+password:
+MQTT_CONFIG.password,
+
+clientId:
+
+"SmartFloodWeb_" +
+
+Math.random()
+
+.toString(16)
+
+.substring(2),
+
+clean:
+true,
+
+reconnectPeriod:
+3000,
+
+connectTimeout:
+10000
+
+}
+
+);
+
+
+/* =====================================================
+DOM
+===================================================== */
+
+const $ =
+
+id =>
+
+document.getElementById(
+id
+);
+
+
+/* =====================================================
+CHART
+===================================================== */
+
+const labels = [];
+
+const waterData = [];
+
+const rainData = [];
+
+
+Chart.defaults.color =
+"#71869a";
+
+
+/* WATER */
+
+const waterChart =
+
+new Chart(
+
+$("waterChart"),
+
+{
+
+type:
+"line",
+
+data: {
+
+labels,
+
+datasets: [
+
+{
+
+label:
+"Air (cm)",
+
+data:
+waterData,
+
+borderColor:
+"#1687e8",
+
+backgroundColor:
+"rgba(22,135,232,.10)",
+
+fill:
+true,
+
+tension:
+.4,
+
+borderWidth:
+3,
+
+pointRadius:
+3
+
+}
+
+]
+
+},
+
+options: {
+
+responsive:
+true,
+
+maintainAspectRatio:
+false,
+
+plugins: {
+
+legend: {
+
+display:
+false
+
+}
+
+},
+
+scales: {
+
+x: {
+
+grid: {
+
+display:
+false
+
+}
+
+},
+
+y: {
+
+grid: {
+
+color:
+"#edf2f6"
+
+}
+
+}
+
+}
+
+}
+
+}
+
+);
+
+
+/* RAIN */
+
+const rainChart =
+
+new Chart(
+
+$("rainChart"),
+
+{
+
+type:
+"bar",
+
+data: {
+
+labels,
+
+datasets: [
+
+{
+
+label:
+"Curah Hujan",
+
+data:
+rainData,
+
+backgroundColor:
+"rgba(20,184,196,.65)",
+
+borderRadius:
+8
+
+}
+
+]
+
+},
+
+options: {
+
+responsive:
+true,
+
+maintainAspectRatio:
+false,
+
+plugins: {
+
+legend: {
+
+display:
+false
+
+}
+
+},
+
+scales: {
+
+x: {
+
+grid: {
+
+display:
+false
+
+}
+
+},
+
+y: {
+
+grid: {
+
+color:
+"#edf2f6"
+
+}
+
+}
+
+}
+
+}
+
+}
+
+);
+
+
+/* =====================================================
+UPDATE CHART
+===================================================== */
+
+function updateChart(
+
+water,
+
+rain
+
+) {
+
+labels.push(
+
+new Date()
+
+.toLocaleTimeString(
+"id-ID"
+)
+
+);
+
+
+waterData.push(
+water
+);
+
+rainData.push(
+rain
+);
+
+
+if(
+labels.length > 25
+) {
+
+labels.shift();
+
+waterData.shift();
+
+rainData.shift();
+
+}
+
+
+waterChart.update();
+
+rainChart.update();
+
+}
+
+
+/* =====================================================
+STATUS COLOR
+===================================================== */
+
+function updateStatus(
+
+value
+
+) {
+
+const status =
+
+value
+
+.toUpperCase()
+
+.trim();
+
+
+$("statusValue")
+
+.textContent =
+
+status;
+
+
+$("statusBadge")
+
+.textContent =
+
+status;
+
+
+let color =
+"#16a66c";
+
+
+if(
+
+status.includes(
+"WASPADA"
+)
+
+) {
+
+color =
+"#e8a600";
+
+}
+
+
+if(
+
+status.includes(
+"SIAGA"
+)
+
+) {
+
+color =
+"#f17b22";
+
+}
+
+
+if(
+
+status.includes(
+"AWAS"
+)
+
+||
+
+status.includes(
+"BAHAYA"
+)
+
+) {
+
+color =
+"#e94b5f";
+
+}
+
+
+$("statusValue")
+
+.style.color =
+
+color;
+
+
+$("statusBadge")
+
+.style.color =
+
+color;
+
+}
+
+
+/* =====================================================
+MQTT CONNECT
+===================================================== */
+
+client.on(
+
+"connect",
+
+() => {
+
+$("connectionDot")
+
+.classList
+
+.add(
+"online"
+);
+
+
+$("connectionText")
+
+.textContent =
+
+"MQTT ONLINE";
+
+
+Object.values(
+
+MQTT_CONFIG.topics
+
+)
+
+.forEach(
+
+topic => {
+
+client.subscribe(
+
+topic,
+
+error => {
+
+if(
+error
+) {
+
+console.error(
+
+"Gagal subscribe:",
+
+topic,
+
+error
+
+);
+
+}
+
+}
+
+);
+
+}
+
+);
+
+}
+
+);
+
+
+/* RECONNECT */
+
+client.on(
+
+"reconnect",
+
+() => {
+
+$("connectionDot")
+
+.classList
+
+.remove(
+"online"
+);
+
+
+$("connectionText")
+
+.textContent =
+
+"MENGHUBUNGKAN...";
+
+}
+
+);
+
+
+/* OFFLINE */
+
+client.on(
+
+"offline",
+
+() => {
+
+$("connectionDot")
+
+.classList
+
+.remove(
+"online"
+);
+
+
+$("connectionText")
+
+.textContent =
+
+"MQTT OFFLINE";
+
+}
+
+);
+
+
+/* ERROR */
+
+client.on(
+
+"error",
+
+error => {
+
+console.error(
+
+"MQTT ERROR:",
+
+error
+
+);
+
+
+$("connectionText")
+
+.textContent =
+
+"MQTT ERROR";
+
+}
+
+);
+
+
+/* =====================================================
+MQTT MESSAGE
+===================================================== */
+
+client.on(
+
+"message",
+
+(
+
+topic,
+
+message
+
+) => {
+
+const value =
+
+message
+
+.toString()
+
+.trim();
+
+
+/* WATER */
+
+if(
+
+topic ===
+
+MQTT_CONFIG
+
+.topics
+
+.water
+
+) {
+
+const number =
+
+parseFloat(
+value
+);
+
+
+if(
+
+!isNaN(
+number
+)
+
+) {
+
+$("waterLevel")
+
+.innerHTML =
+
+number
+
+.toFixed(2)
+
++
+
+` <span class="sensor-unit">
+
+cm
+
+</span>`;
+
+
+updateChart(
+
+number,
+
+rainData.length
+
+?
+
+rainData[
+
+rainData.length - 1
+
+]
+
+:
+
+0
+
+);
+
+}
+
+}
+
+
+/* RAIN */
+
+if(
+
+topic ===
+
+MQTT_CONFIG
+
+.topics
+
+.rain
+
+) {
+
+const number =
+
+parseFloat(
+value
+);
+
+
+if(
+
+!isNaN(
+number
+)
+
+) {
+
+$("rainfall")
+
+.innerHTML =
+
+number
+
+.toFixed(2)
+
++
+
+` <span
+
+id="rainUnit"
+
+class="sensor-unit">
+
+${
+
+$("rainUnit")
+
+.textContent
+
+}
+
+</span>`;
+
+
+updateChart(
+
+waterData.length
+
+?
+
+waterData[
+
+waterData.length - 1
+
+]
+
+:
+
+0,
+
+number
+
+);
+
+}
+
+}
+
+
+/* RAIN UNIT */
+
+if(
+
+topic ===
+
+MQTT_CONFIG
+
+.topics
+
+.unit
+
+) {
+
+$("rainUnit")
+
+.textContent =
+
+value;
+
+}
+
+
+/* IRB */
+
+if(
+
+topic ===
+
+MQTT_CONFIG
+
+.topics
+
+.irb
+
+) {
+
+$("irbValue")
+
+.textContent =
+
+value;
+
+}
+
+
+/* STATUS */
+
+if(
+
+topic ===
+
+MQTT_CONFIG
+
+.topics
+
+.status
+
+) {
+
+updateStatus(
+value
+);
+
+}
+
+
+/* TIME */
+
+if(
+
+topic ===
+
+MQTT_CONFIG
+
+.topics
+
+.time
+
+) {
+
+$("timestampValue")
+
+.textContent =
+
+value;
+
+
+$("timeCard")
+
+.textContent =
+
+value;
+
+}
+
+
+/* MODE */
+
+if(
+
+topic ===
+
+MQTT_CONFIG
+
+.topics
+
+.mode
+
+) {
+
+$("modeValue")
+
+.textContent =
+
+value;
+
+
+$("modeCard")
+
+.textContent =
+
+value;
+
+}
+
+}
+
+);
+
+
+</script>
+
+</body>
+</html>
